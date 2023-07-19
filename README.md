@@ -1,5 +1,5 @@
-P1 and Water meter:
-===================
+P1 and Water meter reader:
+====================
 
 This script uses ESPHome to configure an ESP32-POE-ISO dongle from Olimex to read the P1 port of a smart meter and uses an inductive sensor to measure the water usage.
 
