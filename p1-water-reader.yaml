@@ -1,0 +1,207 @@
+# ESPHome configurationf or the P1 meter with an inductive water sensor attached
+#
+# Smart Meter: Kaifa MA105C
+# DSMR Identification: KFM5KAIFA-METER
+
+esphome:
+  name: p1-water-reader
+
+esp32:
+  board: esp32-poe-iso
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  #password: "secret"
+  encryption:
+    key: !secret api_key
+
+ota:
+  password: "Lariks30Echt"
+
+ethernet:
+  type: LAN8720
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk_mode: GPIO17_OUT
+  phy_addr: 0
+  power_pin: GPIO12
+  domain: .lan
+  use_address: 192.168.20.112
+
+web_server:
+  port: 80
+
+uart:
+  baud_rate: 115200
+  rx_pin: GPIO16
+  rx_buffer_size: 1700
+
+dsmr:
+  max_telegram_length: 1700
+
+sensor:
+  - platform: dsmr
+#    energy_delivered_lux:
+#      name: "Energy Consumed Luxembourg"
+#      state_class: total_increasing
+    energy_delivered_tariff1:
+      name: "Energy Consumed Tariff 1"
+      state_class: total_increasing
+    energy_delivered_tariff2:
+      name: "Energy Consumed Tariff 2"
+      state_class: total_increasing
+#    energy_returned_lux:
+#      name: "Energy Produced Luxembourg"
+#      state_class: total_increasing
+#    energy_returned_tariff1:
+#      name: "Energy Produced Tariff 1"
+#      state_class: total_increasing
+#    energy_returned_tariff2:
+#      name: "Energy Produced Tariff 2"
+#      state_class: total_increasing
+    power_delivered:
+      name: "Power Consumed"
+      unit_of_measurement: "W"
+      state_class: "measurement"
+      accuracy_decimals: 0
+      filters:
+        - multiply: 1000
+#    power_returned:
+#      name: "Power Produced"
+#      unit_of_measurement: "W"
+#      state_class: "measurement"
+#      accuracy_decimals: 0
+#      filters:
+#        - multiply: 1000
+    electricity_failures:
+      name: "Electricity Failures"
+      icon: mdi:alert
+    electricity_long_failures:
+      name: "Long Electricity Failures"
+      icon: mdi:alert
+#    voltage_l1:
+#      name: "Voltage Phase 1"
+#    voltage_l2:
+#      name: "Voltage Phase 2"
+#    voltage_l3:
+#      name: "Voltage Phase 3"
+    current_l1:
+      name: "Current Phase 1"
+#    current_l2:
+#      name: "Current Phase 2"
+#    current_l3:
+#      name: "Current Phase 3"
+#    power_delivered_l1:
+#      name: "Power Consumed Phase 1"
+#      unit_of_measurement: "W"
+#      state_class: "measurement"
+#      accuracy_decimals: 0
+#      filters:
+#        - multiply: 1000
+#    power_delivered_l2:
+#      name: "Power Consumed Phase 2"
+#      unit_of_measurement: "W"
+#      state_class: "measurement"
+#      accuracy_decimals: 0
+#      filters:
+#        - multiply: 1000
+#    power_delivered_l3:
+#      name: "Power Consumed Phase 3"
+#      unit_of_measurement: "W"
+#      state_class: "measurement"
+#      accuracy_decimals: 0
+#      filters:
+#        - multiply: 1000
+#    power_returned_l1:
+#      name: "Power Produced Phase 1"
+#      unit_of_measurement: "W"
+#      state_class: "measurement"
+#      accuracy_decimals: 0
+#      filters:
+#        - multiply: 1000
+#    power_returned_l2:
+#      name: "Power Produced Phase 2"
+#      unit_of_measurement: "W"
+#      state_class: "measurement"
+#      accuracy_decimals: 0
+#      filters:
+#        - multiply: 1000
+#    power_returned_l3:
+#      name: "Power Produced Phase 3"
+#      unit_of_measurement: "W"
+#      state_class: "measurement"
+#      accuracy_decimals: 0
+#      filters:
+#        - multiply: 1000
+    gas_delivered:
+      name: "Gas Consumed"
+      state_class: total_increasing
+#    gas_delivered_be:
+#      name: "Gas Consumed Belgium"
+#      state_class: total_increasing
+  - platform: uptime
+    name: "Uptime"
+  - platform: pulse_counter
+    pin: GPIO33
+    update_interval : 6s
+    name: "Water Pulse"
+    id: water_pulse
+#  - platform: pulse_meter
+#    pin: GPIO33
+#    name: "Water Pulse Meter"
+#    unit_of_measurement: "liter/min"
+#    icon: "mdi:water"
+#    total:
+#      name: "Water Total"
+#      unit_of_measurement: "liter"
+  - platform: pulse_meter
+    pin: GPIO33
+    name: "Water Pulse Meter"
+    unit_of_measurement: "liter/min"
+    icon: "mdi:water"
+    total:
+      name: "Water Meter Total"
+      unit_of_measurement: "m³"
+      id: water_meter_total
+      accuracy_decimals: 3
+      device_class: water
+      state_class: total_increasing
+      filters:
+        - multiply: 0.001
+  - platform: template
+    name: "Water Usage Liter"
+    id: water_flow_rate
+    accuracy_decimals: 1
+    unit_of_measurement: "l/min"
+    icon: "mdi:water"
+    lambda: return (id(water_pulse).state * 10);
+    update_interval: 6s
+
+text_sensor:
+  - platform: dsmr
+    identification:
+      name: "DSMR Identification"
+    p1_version:
+      name: "DSMR Version"
+    message_short:
+      name: "DSMR Message Short"
+#    message_long:
+#      name: "DSMR Message Long"
+#    gas_delivered_text:
+#      name: "DSMR Gas Delivered Raw"
+
+
+#wifi:
+#  ssid: "SSID"
+#  password: "password"
+#
+#  # Enable fallback hotspot (captive portal) in case wifi connection fails
+#  ap:
+#    ssid: "P1-Water-Reader Fallback Hotspot"
+#    password: "MG2oDTPlwokk"
